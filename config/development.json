@@ -1,0 +1,38 @@
+{
+    "port": 4000,
+    "hostAddress": "http://127.0.0.1:3000/",
+    "databaseHost": "localhost",
+    "databasePort": "27017",
+    "databaseUser": "root",
+    "databasePassword": "<password>",
+    "databaseName": "cuddi",
+    "jwtsecret": "ilovescotchscotchyscotchscotch",
+    "jwtOptions": {
+        "expiresIn": "1h"
+    },
+    "encryption": {
+        "algorithm": "aes-256-ctr",
+        "password": "node@crypto123#-encryption"
+    },
+    "fcmServerKey": "<key>",
+    "swaggerDefinition": {
+        "info": {
+            "title": "Cuddi",
+            "version": "1.0",
+            "description": "Cuddi API Documentation"
+        },
+        "basePath": "/v1"
+    },
+    "mailFrom": "Cuddi team@cuddi.com",
+    "adminEmail": "admin@cuddi.com",
+    "mailCredential": {
+        "service": "gmail",
+        "auth": {
+            "user": "<abcd@gmail.com>",
+            "pass": "password"
+        },
+        "tls": {
+            "rejectUnauthorized": false
+        }
+    }
+}
