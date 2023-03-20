@@ -1,8 +1,5 @@
-import { serializeUser } from 'passport';
-
-const users = require('../../models/user')
-const db = require('../../../../index')
-const service = require('../../../../common/server')
+const users = require('../../models/user');
+const service = require('../../../../common/server');
 const legit = require('legit');
 const jwt = require('jsonwebtoken');
 const validatePhoneNumber = require('validate-phone-number-node-js');
@@ -11,12 +8,8 @@ const joi = require('joi');
 const bcrypt = require('bcryptjs')
 const carSchema = require('../../models/car');
 const servicePlans = require('../../models/service')
-const userServices = require('../../models/userServices')
-
+const userServices = require('../../models/userServices');
 export class UserController {
-
-
-
     signup(req, res) {
         const signupSchema = joi.object({
             userName: joi.string().required(),
@@ -169,12 +162,12 @@ export class UserController {
 
 
         const objectId = req.params._id
-        const address=req.params.address
+        var address = req.params.address
 
-        if (address=="street") {
+        if (address == "street") {
             const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.street': req.body.street } }, { new: true })
             if (user) {
-                return res.status(200).json({
+                res.status(200).json({
                     status: true,
                     message: "updated successfully",
                     user: user,
@@ -182,14 +175,14 @@ export class UserController {
             }
             else {
 
-                res.status(501).json({
+                return res.status(501).json({
                     success: false,
                     message: "address not exist"
                 })
             }
 
         }
-        else if (address=="area") {
+        else if (address == "area") {
             const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.area': req.body.area } }, { new: true })
             if (user) {
                 return res.status(200).json({
@@ -206,7 +199,7 @@ export class UserController {
                 })
             }
         }
-        else if (address=="city") {
+        else if (address == "city") {
             const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.city': req.body.city } }, { new: true })
             if (user) {
                 return res.status(200).json({
@@ -223,7 +216,7 @@ export class UserController {
                 })
             }
         }
-        else if (address=="state") {
+        else if (address == "state") {
             const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.state': req.body.state } }, { new: true })
             if (user) {
                 return res.status(200).json({
@@ -232,6 +225,7 @@ export class UserController {
                     user: user,
                 })
             }
+
             else {
 
                 res.status(501).json({
@@ -240,7 +234,7 @@ export class UserController {
                 })
             }
         }
-        else if (address=="cordinates") {
+        else if (address == "cordinates") {
             const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.cordinates': req.body.cordinates } }, { new: true })
             if (user) {
                 return res.status(200).json({
@@ -257,8 +251,59 @@ export class UserController {
                 })
             }
         }
+        else if (address == "street&area") {
+            const user = await users.updateMany({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.street': req.body.street, 'address.$.area': req.body.area} }, { new: true })
+            if (user) {
+                return res.status(200).json({
+                    status: true,
+                    message: "updated successfully",
+                    user: user,
+                })
+            }
+            else {
 
-        else if(address="all"){
+                res.status(403).json({
+                    success: false,
+                    message: "address not exist"
+                })
+            }
+        }
+        else if (address == "street&area&city") {
+            const user = await users.updateMany({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.street': req.body.street, 'address.$.area': req.body.area, 'address.$.city': req.body.city } }, { new: true })
+            if (user) {
+                return res.status(200).json({
+                    status: true,
+                    message: "updated successfully",
+                    user: user,
+                })
+            }
+            else {
+
+                res.status(403).json({
+                    success: false,
+                    message: "address not exist"
+                })
+            }
+        }
+        else if (address == "street&area&city&state") {
+            const user = await users.updateMany({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.street': req.body.street, 'address.$.area': req.body.area, 'address.$.city': req.body.city, 'address.$.state': req.body.state } }, { new: true })
+            if (user) {
+                return res.status(200).json({
+                    status: true,
+                    message: "updated successfully",
+                    user: user,
+                })
+            }
+            else {
+
+                res.status(403).json({
+                    success: false,
+                    message: "address not exist"
+                })
+            }
+        }
+       
+        else if (address = "all") {
             const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$': req.body } }, { new: true })
             if (user) {
                 return res.status(200).json({
@@ -275,12 +320,13 @@ export class UserController {
                 })
             }
         }
-       else{
-        return res.status(406).json({
-            success:false,
-            message:"address field is not exist"
-        })
-       }
+
+        else {
+            return res.status(406).json({
+                success: false,
+                message: "address field is not exist"
+            })
+        }
         //const user= await users.findOne({ 'address._id': objectId, _id: userId } )
 
 
@@ -432,9 +478,9 @@ export class UserController {
                 message: "user  not exist "
             })
 
-        } const car=await servicePlans.findOne({ carType: carType })
-        if(car){
-     
+        } const car = await servicePlans.findOne({ carType: carType })
+        if (car) {
+
             return res.status(200).json({
                 success: true,
                 car: car
@@ -442,11 +488,11 @@ export class UserController {
         }
         else {
             return res.status(402).json({
-                success:false,
-                message:"car is not exist"
+                success: false,
+                message: "car is not exist"
             })
         }
-      
+
     }
 
 

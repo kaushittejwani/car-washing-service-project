@@ -10,6 +10,7 @@ import auth from '../../../../../jwtAuth';
 
 
 const passport = require('passport');
+
 app.use(passport.initialize());
 require('../../../../helper/passportStrategy')
 
