@@ -6,8 +6,7 @@ const userServices = new Schema({
         type:String,
         required:true
     },
-   
-    carType: {
+   carId: {
         type: String,
         required: true
     },

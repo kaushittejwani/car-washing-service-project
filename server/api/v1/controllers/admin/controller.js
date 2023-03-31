@@ -22,13 +22,6 @@ const jwt = require('jsonwebtoken');
 export class AdminController {
     //create plans
     async createPlans(req, res) {
-        const admin = await users.findOne({ _id: req.userId })
-        if (!admin.isAdmin) {
-            return res.status(403).json({
-                success: false,
-                error: "only the admin is able to create car service plans"
-            })
-        }
         const carType = req.body.carType
         const planSchema = joi.object({
             carType: joi.string().required(),
@@ -70,13 +63,7 @@ export class AdminController {
 
     //show all plans
     async showPlans(req, res) {
-
-
-        const admin = await users.findOne({ _id: req.userId })
-        if (!admin.isAdmin) {
-            return res.status(404).json({ success: false, error: "only the admin is able to create car service plans" })
-        }
-        await servicePlans.find({}).then((plans) => {
+     await servicePlans.find({}).then((plans) => {
             return res.status(200).send(plans)
         }).catch((error) => {
             res.status(402).json({
@@ -88,22 +75,13 @@ export class AdminController {
 
     //delete plan
     async deletePlan(req, res) {
-
-        const objectId = req.params._id
-
-        const admin = await users.findOne({ _id: req.userId })
-        if (!admin.isAdmin) {
-            return res.status(403).json({ success: false, error: "only the admin is able to delete car service plans" })
-        }
-        const planId = await servicePlans.findOne({ "plans._id": objectId })
+    const planId = await servicePlans.findOne({ "plans._id": objectId })
         if (!planId) {
             return res.status(406).json({
                 success: false,
                 error: "plan is not exist"
             })
         }
-
-
         const plan = await servicePlans.findOneAndUpdate({ carType: req.params.carType }, {
 
             $pull: {
@@ -130,10 +108,6 @@ export class AdminController {
 
     //delete car
     async deleteCar(req, res) {
-        const admin = await users.findOne({ _id: req.userId })
-        if (!admin.isAdmin) {
-            return res.status(403).json({ success: false, error: "only the admin is able to delete car" })
-        }
         const car = await servicePlans.findOne({ carType: req.params.carType })
         if (car) {
             const deleteCar = await servicePlans.deleteOne({ carType: req.params.carType })
@@ -155,11 +129,7 @@ export class AdminController {
 
     //update single plan
     async updatePlan(req, res) {
-        const admin = await users.findOne({ _id: req.userId })
-        if (!admin.isAdmin) {
-            return res.status(403).json({ success: false, error: "only the admin is able to create car service plans" })
-        }
-    const carPlan = await servicePlans.findOneAndUpdate({ carType: req.params.carType, 'plans._id': req.params._id }, {
+        const carPlan = await servicePlans.findOneAndUpdate({ carType: req.params.carType, 'plans._id': req.params._id }, {
             $set: {
                 'plans.$': req.body
             }

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const schema = mongoose.Schema
 const bcrypt = require('bcryptjs');
 const joi = require('joi');
+var session=require('express-session');   
 
 const serviceSchema = new schema({
     carModel: {

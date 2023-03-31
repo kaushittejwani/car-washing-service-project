@@ -1,3 +1,5 @@
+
+
 const users = require('../../models/user');
 const service = require('../../../../common/server');
 const legit = require('legit');
@@ -9,7 +11,9 @@ const bcrypt = require('bcryptjs')
 const carSchema = require('../../models/car');
 const servicePlans = require('../../models/service')
 const userServices = require('../../models/userServices');
+const  session= require('express-session')
 export class UserController {
+
     signup(req, res) {
         const signupSchema = joi.object({
             userName: joi.string().required(),
@@ -50,9 +54,22 @@ export class UserController {
                 .then(async result => {
 
                     if (result.isValid) {
+                        const {email}=req.body
+                        const customer = await stripe.addNewCustomer(email)
+                        req.session.customerId=customer
+                        
+                        
                         const user = new users(req.body)
 
                         result = await user.save()
+
+
+                        //stripe payment
+
+                        
+
+                       
+
 
                         var payload = {
                             username: user.userName,
@@ -65,6 +82,7 @@ export class UserController {
                         return res.status(201).send({
                             success: true,
                             message: "user successfully registerd",
+                            customer: customer,
                             user: {
                                 username: user.userName,
                                 email: user.email,
@@ -73,8 +91,10 @@ export class UserController {
                                 user_id: user._id,
                                 token: "Bearer " + token,
                             }
+
                         }
                         )
+
 
                     }
                     else {
@@ -86,6 +106,7 @@ export class UserController {
 
 
                 })
+
 
         }
         signup();
@@ -126,7 +147,7 @@ export class UserController {
                 })
 
             }
-
+          
             var payload = {
                 username: user.userName,
                 _id: user._id,
@@ -135,6 +156,7 @@ export class UserController {
                 address: user.address
             }
             const token = jwt.sign(payload, "rANDOMSTRIGN", { expiresIn: "300000000000000000" })
+           
             return res.status(200).json({
                 success: true,
                 message: "logged in successfully",
@@ -148,190 +170,34 @@ export class UserController {
 
     async update(req, res) {
         const updateSchema = joi.object({
+            _id: joi.string().required(),
             street: joi.string().optional(),
             area: joi.string().optional(),
             city: joi.string().optional(),
             state: joi.string().optional(),
-            cordinates: joi.array().optional()
-
+            cordinates: joi.array().optional(),
         })
         const { error, value } = updateSchema.validate(req.body, { abortEarly: false })
         if (error) {
             return res.status(401).json({ error: error.details })
         }
 
+        const { _id, ...updateObject } = req.body;
 
-        const objectId = req.params._id
-        var address = req.params.address
+        Object.keys(updateObject).forEach(key => {
+            updateObject[`address.$.${key}`] = updateObject[key];
+            delete updateObject[key];
+        });
 
-        if (address == "street") {
-            const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.street': req.body.street } }, { new: true })
-            if (user) {
-                res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-            else {
+        const user = await users.findOneAndUpdate({
+            'address._id': _id, _id: req.userId
+        }, updateObject, { new: true })
 
-                return res.status(501).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-
-        }
-        else if (address == "area") {
-            const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.area': req.body.area } }, { new: true })
-            if (user) {
-                return res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-            else {
-
-                res.status(501).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-        }
-        else if (address == "city") {
-            const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.city': req.body.city } }, { new: true })
-            if (user) {
-                return res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-            else {
-
-                res.status(501).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-        }
-        else if (address == "state") {
-            const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.state': req.body.state } }, { new: true })
-            if (user) {
-                return res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-
-            else {
-
-                res.status(501).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-        }
-        else if (address == "cordinates") {
-            const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.cordinates': req.body.cordinates } }, { new: true })
-            if (user) {
-                return res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-            else {
-
-                res.status(501).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-        }
-        else if (address == "street&area") {
-            const user = await users.updateMany({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.street': req.body.street, 'address.$.area': req.body.area} }, { new: true })
-            if (user) {
-                return res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-            else {
-
-                res.status(403).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-        }
-        else if (address == "street&area&city") {
-            const user = await users.updateMany({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.street': req.body.street, 'address.$.area': req.body.area, 'address.$.city': req.body.city } }, { new: true })
-            if (user) {
-                return res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-            else {
-
-                res.status(403).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-        }
-        else if (address == "street&area&city&state") {
-            const user = await users.updateMany({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$.street': req.body.street, 'address.$.area': req.body.area, 'address.$.city': req.body.city, 'address.$.state': req.body.state } }, { new: true })
-            if (user) {
-                return res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-            else {
-
-                res.status(403).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-        }
-       
-        else if (address = "all") {
-            const user = await users.findOneAndUpdate({ $and: [{ 'address._id': objectId }, { _id: req.userId }] }, { $set: { 'address.$': req.body } }, { new: true })
-            if (user) {
-                return res.status(200).json({
-                    status: true,
-                    message: "updated successfully",
-                    user: user,
-                })
-            }
-            else {
-
-                res.status(403).json({
-                    success: false,
-                    message: "address not exist"
-                })
-            }
-        }
-
-        else {
-            return res.status(406).json({
-                success: false,
-                message: "address field is not exist"
-            })
-        }
-        //const user= await users.findOne({ 'address._id': objectId, _id: userId } )
-
-
-
-
+        res.status(200).json({
+            status: true,
+            message: "updated successfully",
+            user: user,
+        });
     }
 
 
@@ -355,7 +221,8 @@ export class UserController {
                 address: { _id: req.params._id }
             }
         }).then(async (user) => {
-            await userServices.findOneAndUpdate({ $and: [{ userId: req.userId }, { addressId: req.params._id }] }, {
+            // TODO: Update all the services.
+            await userServices.updateMany({ userId: req.userId, addressId: req.params._id }, {
                 $set: {
                     isActive: false
                 }
@@ -418,18 +285,19 @@ export class UserController {
         const registration = joi.object({
             carModel: joi.string().required(),
             carNumber: joi.number().required(),
-            carType: joi.string().required(),
+            carType: joi.string().valid("muv", "suv", "sedan").required(),
             addressId: joi.string().required()
-
         })
+
+        // TODO: Remove findOne user. Remove carModel if condition
         const { error, value } = registration.validate(req.body, { abortEarly: false })
         if (error) {
             return res.status(402).json({ error: error.details })
         }
-        const user = await users.findOne({ _id: req.userId })
-        if (!user) {
-            return res.status(401).json({ success: false, message: "user not exist " })
-        }
+        // const user = await users.findOne({ _id: req.userId })
+        // if (!user) {
+        //     return res.status(401).json({ success: false, message: "user not exist " })
+        // }
         const carNumber = req.body.carNumber
         if (carNumber.length > 4) {
             return res.status(402).send("Car number are not valid ,car number must be in 4 digit")
@@ -442,30 +310,29 @@ export class UserController {
             })
         }
         const carType = req.body.carType
-        if (carType == "sedan" || carType == "muv" || carType == "suv") {
-            const car = new carSchema({
-                carModel: req.body.carModel,
-                carNumber: req.body.carNumber,
-                carType: req.body.carType,
-                addressId: req.body.addressId,
-                userId: req.userId
-            })
-            await car.save().then((car) => {
-                return res.status(201).json({
-                    success: true,
-                    message: "car registration successfully",
-                    car: car
-                })
 
-            }).catch((error) => {
-                return res.status(403).json({
-                    error: error
-                })
+        const registerCar = new carSchema({
+            carModel: req.body.carId,
+            carNumber: req.body.carNumber,
+            carType: req.body.carType,
+            addressId: req.body.addressId,
+            userId: req.userId
+        })
+        await registerCar.save().then((car) => {
+            return res.status(201).json({
+                success: true,
+                message: "car registration successfully",
+                car: car
             })
 
-        } else {
-            return res.status(403).json({ success: false, message: "car service only available for three carModel only sedan.huv,muv,please type in these three only." })
-        }
+        }).catch((error) => {
+            return res.status(403).json({
+                error: error
+            })
+        })
+
+
+
 
     }
 
@@ -501,7 +368,7 @@ export class UserController {
     async selectService(req, res) {
         const selectSchema = joi.object({
 
-            carType: joi.string().required(),
+            carId: joi.string().required(),
 
             plan: {
                 type: joi.string().required(),
@@ -516,21 +383,21 @@ export class UserController {
                 error: error.details
             })
         }
-        const user = await users.findOne({ _id: req.userId })
-        if (!user) {
-            return res.status(403).json({
-                success: false,
-                message: "user is not exist"
-            })
-        }
-        const car = await servicePlans.findOne({ carType: req.body.carType })
+        // const user = await users.findOne({ _id: req.userId })
+        // if (!user) {
+        //     return res.status(403).json({
+        //         success: false,
+        //         message: "user is not exist"
+        //     })
+        // }
+        const car = await servicePlans.findOne({ _id: req.body.carId })
         if (!car) {
             return res.status(403).json({
                 success: false,
                 message: "car  not exist"
             })
         }
-        const carService = await userServices.findOne({ $and: [{ carType: req.body.carType }, { type: req.body.type }] })
+        const carService = await userServices.findOne({ carId: req.body.carId, type: req.body.type })
         if (carService) {
             return res.status(200).json({
                 success: false,
@@ -539,7 +406,7 @@ export class UserController {
         }
         const carServices = new userServices({
             userId: req.userId,
-            carType: req.body.carType,
+            carId: req.body.carId,
             plan: req.body.plan,
             addressId: req.body.addressId,
             isActive: true
@@ -549,7 +416,7 @@ export class UserController {
             return res.status(201).json({
                 success: true,
                 message: "service registerd successfully",
-                carServicex: carServices
+                carService: carService
             })
 
         }).catch((error) => {
@@ -563,12 +430,12 @@ export class UserController {
         const user = await userServices.findOne({ userId: req.userId, id: req.params._id })
         if (!user.isActive) {
             return res.status(200).json({
-                success: true,
+                success: false,
                 message: "service is already inActive",
-                user: user
+
             })
         }
-        const updateUser = await userServices.findOneAndUpdate({ userId: req.userId, _id: req.params._id }, {
+        const updateUser = await userServices.updateMany({ userId: req.userId, _id: req.params._id }, {
             $set: {
                 isActive: false
             }
@@ -599,7 +466,7 @@ export class UserController {
             })
         }
 
-        const status = req.body.status
+        const status = req.params.status
         const service = await userServices.find({ userId: req.userId, isActive: status })
         if (!service) {
             return res.status(402).json({

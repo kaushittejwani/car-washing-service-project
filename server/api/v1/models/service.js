@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const plansSchema = new Schema({
-    carType: {
+    cartype: {
         type: String,
         required: true
     },

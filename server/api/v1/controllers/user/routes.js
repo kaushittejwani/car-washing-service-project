@@ -9,6 +9,7 @@ import userAuth from '../../../../../jwtAuth';
 import auth from '../../../../../jwtAuth';
 
 
+
 const passport = require('passport');
 
 app.use(passport.initialize());
@@ -23,16 +24,16 @@ export default Express
     // Post
     .post('/signup', controller.signup)
     .post('/login', controller.login)
-    .post('/add',auth, controller.addAddress)
-    .post('/carRegistration',auth, controller.carRegistration)
-    .post('/selectServices',auth,controller.selectService)
+    .post('/add', auth, controller.addAddress)
+    .post('/carRegistration', auth, controller.carRegistration)
+    .post('/selectServices', auth, controller.selectService)
     // Fetch
-    .get('/plan/:carType',auth,controller.plansByCarType)
-    .get('/allUserServices',auth,controller.getServices)
+    .get('/plan/:carType', auth, controller.plansByCarType)
+    .get('/allUserServices/:status', auth, controller.getServices)
 
     // Update
-    .put('/update/:_id/:address',auth, controller.update)
-    .put('/cancelService/:_id',auth,controller.cancelService)
+    .put('/updateAddress', auth, controller.update)
+    .put('/cancelService/:_id', auth, controller.cancelService)
 
     //delete
-    .delete('/delete/:_id',auth, controller.delete)
+    .delete('/delete/:_id', auth, controller.delete)
