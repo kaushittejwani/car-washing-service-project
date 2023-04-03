@@ -34,10 +34,7 @@ export class paymentGateway {
         customer:req.user.customer
 
       })
-
-
-
-
+      
       res.status(200).send(session);
     }
     else{
@@ -55,9 +52,6 @@ export class paymentGateway {
         customer_email:req.user.email
 
       })
-
-
-
 
       res.status(200).send(session);
     }
