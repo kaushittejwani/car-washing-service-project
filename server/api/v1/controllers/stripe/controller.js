@@ -1,11 +1,22 @@
 import sessions from 'express-session';
 const users = require('../../models/user')
+const joi=require('joi');
 
 require('dotenv').config();
 const stripe = require('stripe')(process.env.secretKey);
 export class paymentGateway {
+  
 
-  async createBasicMonthly(req, res) {
+  async generateCheckoutUrl(req, res) {
+    const plan=joi.object({
+      price:joi.string().required()
+    })
+    const {error,value}=plan.validate(req.body,{abortEarly:false})
+    
+    if (error) {
+        return res.status(402).json(error.details)
+    }
+    
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -16,114 +27,27 @@ export class paymentGateway {
         },
       ],
       mode: 'subscription',
-      success_url: `http://localhost:4000/success.html`,
-      cancel_url: `http://localhost:4000/unsuccess.html`,
+      success_url: `https://www.google.com`,
+      cancel_url: `http://www.google.com`,
+      customer: req.user.customer
+
+
     });
 
-
-
-    res.redirect(303, session.url);
-
+    res.status(303).send(session)
   }
 
-  async createBasicYearly(req, res) {
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-
-          // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-          price: req.body.price,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `http://localhost:4000/checkout/success.html`,
-      cancel_url: `http://localhost:4000/checkout/unsuccess.html`,
-    });
-
-    res.redirect(303, session.url);
-  }
-  async createStandardMonthly(req, res) {
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-
-          // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-          price: req.body.price,
-          quantity: 1,
-
-        },
-      ],
-      mode: 'subscription',
-      success_url: `http://localhost:4000/checkout/success.html`,
-      cancel_url: `http://localhost:4000/checkout/unsuccess.html`,
-    });
-
-    res.redirect(303, session.url);
-  }
-  async createStandardYearly(req, res) {
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-
-          // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-          price: req.body.price,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `http://localhost:4000/checkout/success,html`,
-      cancel_url: `http://localhost:4000/checkout/unsuccess.html`,
-    });
-
-    res.redirect(303, session.url);
-  }
-  async createPremiumMonthly(req, res) {
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-
-          // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-          price: req.body.price,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `http://localhost:4000/success.html`,
-      cancel_url: `http://localhost:4000/unsuccess.html`,
-    });
-
-    res.redirect(303, session.url);
-
-  }
-
-  async createPremiumYearly(req, res) {
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-
-          // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-          price: req.body.price,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `http://localhost:4000/success.html`,
-      cancel_url: `http://localhost:4000/unsuccess.html`,
-    });
-
-    res.redirect(303, session.url);
-  }
   async webhook(req, res) {
     const { data } = req.body
-    const user = await users.findOne({ userName: data.object.name })
+    const user = await users.findOne({ email: data.object.email })
     if (user) {
-      if (user.email == data.object.email) {
-        await users.updateOne({ email: data.object.email }, {
+      {
+         await users.findOneAndUpdate({ email: data.object.email }, {
           $set: {
-            stripeId: data.object.id
+            //email:"tejwanikaushit46@gmail.com",
+            customer: data.object.id
           }
-        }).then(() => {
+        }).then((user) => {
           return res.status(200).json({
             message: 'update successfully',
             user: user
@@ -135,24 +59,7 @@ export class paymentGateway {
         })
 
       }
-      else {
-        await users.updateOne({ userName: data.object.name }, {
-          $set: {
-            email: data.object.email,
-            stripeId: data.object.id
 
-          }
-        }).then(() => {
-          return res.status(200).json({
-            message: 'update successfully',
-            user: user
-          })
-        }).catch((err) => {
-          return res.status(402).json({
-            err: err
-          })
-        })
-      }
     }
     else {
       return res.status(404).json({
@@ -161,15 +68,11 @@ export class paymentGateway {
     }
   }
 
-  // // async unsucess(req,res){
-  //     res.status(404).json({
-  //         unsucess:req.body
-  //     })
-  // // }
   async customerPortal(req, res) {
     // For demonstration purposes, we're using the Checkout session to retrieve the customer ID.
     // Typically this is stored alongside the authenticated user in your database.
-    const session_id = req.body.session_id;
+    const user = await users.find({ name: req.body });
+    const session_id = user.stripeId
     const checkoutSession = await stripe.checkout.sessions.retrieve(session_id);
 
     // This is the url to which the customer will be redirected when they are done

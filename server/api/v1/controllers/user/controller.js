@@ -190,7 +190,7 @@ export class UserController {
         });
 
         const user = await users.findOneAndUpdate({
-            'address._id': _id, _id: req.userId
+            'address._id': _id, _id: req.user.id
         }, updateObject, { new: true })
 
         res.status(200).json({
@@ -208,7 +208,7 @@ export class UserController {
 
     //delete address
     async delete(req, res) {
-        const address = await users.findOne({ _id: req.userId, 'address': { $elemMatch: { _id: req.params._id } } });
+        const address = await users.findOne({ _id: req.user.id, 'address': { $elemMatch: { _id: req.params._id } } });
         if (!address) {
             return res.status(402).json({
                 success: false,
@@ -216,13 +216,13 @@ export class UserController {
             })
         }
 
-        await users.findOneAndUpdate({ _id: req.userId }, {
+        await users.findOneAndUpdate({ _id: req.user.id }, {
             $pull: {
                 address: { _id: req.params._id }
             }
         }).then(async (user) => {
             // TODO: Update all the services.
-            await userServices.updateMany({ userId: req.userId, addressId: req.params._id }, {
+            await userServices.updateMany({ userId: req.user.id, addressId: req.params._id }, {
                 $set: {
                     isActive: false
                 }
@@ -264,7 +264,7 @@ export class UserController {
 
         //find id and update
         const addaddress = req.body
-        await users.findOneAndUpdate({ _id: req.userId }, {
+        await users.findOneAndUpdate({ _id: req.user.id}, {
             $push: {
                 address: addaddress
             }
@@ -316,7 +316,7 @@ export class UserController {
             carNumber: req.body.carNumber,
             carType: req.body.carType,
             addressId: req.body.addressId,
-            userId: req.userId
+            userId: req.user.id
         })
         await registerCar.save().then((car) => {
             return res.status(201).json({
@@ -338,7 +338,7 @@ export class UserController {
 
     async plansByCarType(req, res) {
         const carType = req.params.carType
-        const user = await users.findOne({ _id: req.userId })
+        const user = await users.findOne({ _id: req.user.id })
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -405,7 +405,7 @@ export class UserController {
             })
         }
         const carServices = new userServices({
-            userId: req.userId,
+            userId: req.user.id,
             carId: req.body.carId,
             plan: req.body.plan,
             addressId: req.body.addressId,
@@ -427,7 +427,7 @@ export class UserController {
     }
 
     async cancelService(req, res) {
-        const user = await userServices.findOne({ userId: req.userId, id: req.params._id })
+        const user = await userServices.findOne({ userId: req.user.id, id: req.params._id })
         if (!user.isActive) {
             return res.status(200).json({
                 success: false,
@@ -435,7 +435,7 @@ export class UserController {
 
             })
         }
-        const updateUser = await userServices.updateMany({ userId: req.userId, _id: req.params._id }, {
+        const updateUser = await userServices.updateMany({ userId: req.user.id, _id: req.params._id }, {
             $set: {
                 isActive: false
             }
@@ -467,7 +467,7 @@ export class UserController {
         }
 
         const status = req.params.status
-        const service = await userServices.find({ userId: req.userId, isActive: status })
+        const service = await userServices.find({ userId: req.user.id, isActive: status })
         if (!service) {
             return res.status(402).json({
                 success: false,
@@ -475,21 +475,21 @@ export class UserController {
             })
         }
         else if (status == true) {
-            const service = await userServices.find({ userId: req.userId, isActive: true })
+            const service = await userServices.find({ userId: req.user.id, isActive: true })
             return res.status(200).json({
                 success: true,
                 service: service
             })
         }
         else if (status == false) {
-            const service = await userServices.find({ userId: req.userId, isActive: false })
+            const service = await userServices.find({ userId: req.user.id, isActive: false })
             return res.status(200).json({
                 success: true,
                 service: service
             })
         }
         else {
-            const service = await userServices.find({ userId: req.userId })
+            const service = await userServices.find({ userId: req.user.id })
             return res.status(200).json({
                 success: true,
                 service: service

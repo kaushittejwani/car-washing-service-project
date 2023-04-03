@@ -14,6 +14,9 @@ const userSchema = new schema({
         required: true,
         lowercase: true
     },
+    customer:{
+        type:String
+    },
     mobile: {
         mobileNo: {
             type: Number,
