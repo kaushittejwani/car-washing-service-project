@@ -12,9 +12,9 @@ export default Express
     // Post
     .post('/generateCheckoutUrl', auth, controller.generateCheckoutUrl)
     
-    .post('/customerPortalSession',controller.customerPortal)
-    .post('/customerIdWebhook',auth,bodyParser.raw({type:'application/json'}),controller.webhook)
-    .post('/subscriptionUpdatedWebhook',bodyParser.raw({type:'application/json'}),controller.webhook)
+ //   .post('/customerPortalSession',auth,controller.customerPortal)
+    .post('/saveCustomerIdWebhook',auth,bodyParser.raw({type:'application/json'}),controller.saveCustomerIdWebhook)
+ //   .post('/subscriptionUpdatedWebhook',auth,bodyParser.raw({type:'application/json'}),controller.subscriptionUpdatedWebhook)
     //.post('/webhook',bodyParser.raw({type:'application/json'}),controller.unsucess)
 
 
