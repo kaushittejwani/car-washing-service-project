@@ -1,5 +1,3 @@
-
-
 const users = require('../../models/user');
 const service = require('../../../../common/server');
 const legit = require('legit');
@@ -11,7 +9,7 @@ const bcrypt = require('bcryptjs')
 const carSchema = require('../../models/car');
 const servicePlans = require('../../models/service')
 const userServices = require('../../models/userServices');
-const  session= require('express-session')
+const session = require('express-session')
 export class UserController {
 
     signup(req, res) {
@@ -35,41 +33,24 @@ export class UserController {
             }
 
             const mobileno = validatePhoneNumber.validate(req.body.mobile.mobileNo);
-
             if (!mobileno) {
                 return res.status(402).send("the mobile no are not exist or invalid")
             }
-
-
             const mobile = phone(req.body.mobile.mobileNo)
             if (!mobile) {
                 return res.status(402).send("the countrycode  is not valid ,car wash service are now available only in india so plase type +91 in the filed of country code")
             }
-
             const user = await users.findOne({ $or: [{ userName: req.body.userName }, { email: req.body.email }, { mobileNo: req.body.mobile.mobileNo }] })
             if (user) {
                 return res.status(403).end("the user is already exist,please try another username or email or mobileNo")
             }
             await legit(req.body.email)
                 .then(async result => {
-
                     if (result.isValid) {
-                        const {email}=req.body
-                        const customer = await stripe.addNewCustomer(email)
-                        req.session.customerId=customer
-                        
-                        
+                        const { email } = req.body
                         const user = new users(req.body)
 
                         result = await user.save()
-
-
-                        //stripe payment
-
-                        
-
-                       
-
 
                         var payload = {
                             username: user.userName,
@@ -78,11 +59,11 @@ export class UserController {
                             mobileno: user.mobile.mobileNo,
                             address: user.address
                         }
+
                         const token = jwt.sign(payload, "rANDOMSTRIGN", { expiresIn: "365d" })
                         return res.status(201).send({
                             success: true,
                             message: "user successfully registerd",
-                            customer: customer,
                             user: {
                                 username: user.userName,
                                 email: user.email,
@@ -91,11 +72,8 @@ export class UserController {
                                 user_id: user._id,
                                 token: "Bearer " + token,
                             }
-
                         }
                         )
-
-
                     }
                     else {
                         return res.json({
@@ -103,21 +81,11 @@ export class UserController {
                             message: "invalid email"
                         })
                     }
-
-
                 })
-
 
         }
         signup();
-
-
-
-        //login
-
-
     }
-
     //login
     login(req, res) {
 
@@ -147,7 +115,7 @@ export class UserController {
                 })
 
             }
-          
+
             var payload = {
                 username: user.userName,
                 _id: user._id,
@@ -156,7 +124,7 @@ export class UserController {
                 address: user.address
             }
             const token = jwt.sign(payload, "rANDOMSTRIGN", { expiresIn: "300000000000000000" })
-           
+
             return res.status(200).json({
                 success: true,
                 message: "logged in successfully",
@@ -186,6 +154,7 @@ export class UserController {
 
         Object.keys(updateObject).forEach(key => {
             updateObject[`address.$.${key}`] = updateObject[key];
+            console.log(updateObject[key])
             delete updateObject[key];
         });
 
@@ -199,13 +168,6 @@ export class UserController {
             user: user,
         });
     }
-
-
-
-
-
-
-
     //delete address
     async delete(req, res) {
         const address = await users.findOne({ _id: req.user.id, 'address': { $elemMatch: { _id: req.params._id } } });
@@ -244,10 +206,7 @@ export class UserController {
                 error: error
             })
         })
-
-
     }
-
     //add address
     async addAddress(req, res) {
         const addAddressSchema = joi.object({
@@ -264,7 +223,7 @@ export class UserController {
 
         //find id and update
         const addaddress = req.body
-        await users.findOneAndUpdate({ _id: req.user.id}, {
+        await users.findOneAndUpdate({ _id: req.user.id }, {
             $push: {
                 address: addaddress
             }
@@ -286,18 +245,13 @@ export class UserController {
             carModel: joi.string().required(),
             carNumber: joi.number().required(),
             carType: joi.string().valid("muv", "suv", "sedan").required(),
-            addressId: joi.string().required()
+            addressId: joi.string().required(),
         })
-
         // TODO: Remove findOne user. Remove carModel if condition
         const { error, value } = registration.validate(req.body, { abortEarly: false })
         if (error) {
             return res.status(402).json({ error: error.details })
         }
-        // const user = await users.findOne({ _id: req.userId })
-        // if (!user) {
-        //     return res.status(401).json({ success: false, message: "user not exist " })
-        // }
         const carNumber = req.body.carNumber
         if (carNumber.length > 4) {
             return res.status(402).send("Car number are not valid ,car number must be in 4 digit")
@@ -312,11 +266,12 @@ export class UserController {
         const carType = req.body.carType
 
         const registerCar = new carSchema({
-            carModel: req.body.carId,
+            carModel: req.body.carModel,
             carNumber: req.body.carNumber,
             carType: req.body.carType,
             addressId: req.body.addressId,
-            userId: req.user.id
+            userId: req.user.id,
+
         })
         await registerCar.save().then((car) => {
             return res.status(201).json({
@@ -330,10 +285,6 @@ export class UserController {
                 error: error
             })
         })
-
-
-
-
     }
 
     async plansByCarType(req, res) {
@@ -359,12 +310,7 @@ export class UserController {
                 message: "car is not exist"
             })
         }
-
     }
-
-
-
-
     async selectService(req, res) {
         const selectSchema = joi.object({
 
@@ -455,7 +401,6 @@ export class UserController {
     }
 
     async getServices(req, res) {
-
         const serviceSchema = joi.object({
             status: joi.boolean().optional()
         })
@@ -497,23 +442,5 @@ export class UserController {
         }
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
 export default new UserController();

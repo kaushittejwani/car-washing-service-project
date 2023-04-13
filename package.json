@@ -47,7 +47,7 @@
     "memorystore": "^1.6.7",
     "moment": "^2.22.2",
     "moment-timezone": "^0.5.17",
-    "mongoose": "^5.3.5",
+    "mongoose": "^5.13.17",
     "multer": "^1.4.1",
     "node-xlsx": "^0.12.1",
     "nodemailer": "^2.3.2",

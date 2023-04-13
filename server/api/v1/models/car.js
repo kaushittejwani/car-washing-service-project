@@ -25,6 +25,19 @@ const serviceSchema = new schema({
      userId:{
         type:String,
         required:true
+     },
+     plan:{
+     plan:{
+      type :String
+     },
+     priceId:{
+      type:String
+     }
+     
+   },
+     isActive:{
+      type:String,
+      default:false
      }
 
    

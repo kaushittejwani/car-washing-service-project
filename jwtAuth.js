@@ -15,14 +15,14 @@ const auth = async (req, res, next) => {
         const decodeToken = jwt.decode(token);
         const user = await users.findOne({ _id: decodeToken._id }, { _id: 1, email: 1, customer: 1 })
         if (user) {
-           req.user=user
+            req.user = user
         }
         else {
             res.status(401).json({
                 err: "unauthorized user"
             })
         }
-       
+
     } catch (error) {
         res.status(401).json({
             message: "unauhtorized user",
