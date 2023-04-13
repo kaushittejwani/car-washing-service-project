@@ -24,8 +24,6 @@ export class paymentGateway {
           error: "car not found"
         })
       }
-
-
       const sessionObject = {
         line_items: [
           {
@@ -53,7 +51,7 @@ export class paymentGateway {
       }
       var session = await stripe.checkout.sessions.create(sessionObject)
       return res.status(200).send(session)
-    }catch(error) {
+    } catch (error) {
       return res.status(404).send(error.message)
     }
   }
