@@ -5,25 +5,22 @@ const express = require(
 const app = express()
 import adminAuth from "../../../../../jwtAuth"
 import controller from './controller';
-import upload from '../../../../helper/uploadHandler';
+
 
 export default Express
     .Router()
     // Post
-    .post('/service/plans/', adminAuth, controller.createPlans)
+    .post('/service/plans', adminAuth, controller.createPlans)
 
     // Fetch
     .get('/showAll/Plans', adminAuth, controller.showPlans)
 
     // Update
-
-
     .put('/updatePlan/:carType/:_id', adminAuth, controller.updatePlan)
-
 
     // delete
     .delete('/deleteCar/:carType', adminAuth, controller.deleteCar)
-    .delete('/deletePlan/:carType/:_id', adminAuth, controller.deletePlan)
+    .delete('/deletePlan/:carType/:objectId', adminAuth, controller.deletePlan)
 
 
 

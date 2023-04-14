@@ -7,17 +7,9 @@ import controller from './controller';
 import upload from '../../../../helper/uploadHandler';
 import userAuth from '../../../../../jwtAuth';
 import auth from '../../../../../jwtAuth';
-
-
-
 const passport = require('passport');
-
 app.use(passport.initialize());
 require('../../../../helper/passportStrategy')
-
-
-
-
 
 export default Express
     .Router()
@@ -27,6 +19,7 @@ export default Express
     .post('/add', auth, controller.addAddress)
     .post('/carRegistration', auth, controller.carRegistration)
     .post('/selectServices', auth, controller.selectService)
+
     // Fetch
     .get('/plan/:carType', auth, controller.plansByCarType)
     .get('/allUserServices/:status', auth, controller.getServices)

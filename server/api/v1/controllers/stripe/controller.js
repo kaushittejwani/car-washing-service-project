@@ -109,7 +109,7 @@ export class paymentGateway {
         })
       })
   }
-
+    
   //customer_portal
   async customerPortal(req, res) {
     const session = await stripe.billingPortal.sessions.create({

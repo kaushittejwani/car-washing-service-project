@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const plansSchema = new Schema({
-    cartype: {
+    carType: {
         type: String,
         required: true
     },
@@ -15,8 +15,8 @@ const plansSchema = new Schema({
             required: true
         },
         year: {
-            type: String,
-            required: true
+            type: String
+            
         }
 
     }
