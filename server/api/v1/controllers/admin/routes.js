@@ -12,6 +12,7 @@ export default Express
     // Post
     .post('/service/plans', adminAuth, controller.createPlans)
 
+
     // Fetch
     .get('/showAll/Plans', adminAuth, controller.showPlans)
 
